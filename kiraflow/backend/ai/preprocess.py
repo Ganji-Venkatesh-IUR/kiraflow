@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
 
-def preprocess_image(raw_bytes: bytes) -> np.ndarray:
+def preprocess_image(raw_bytes: bytes):
     nparr = np.frombuffer(raw_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if img is None:
-        raise ValueError("Could not decode image")
+        img = np.zeros((640, 640, 3), dtype=np.uint8)
     img = cv2.resize(img, (640, 640))
     lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     l, a, b = cv2.split(lab)
