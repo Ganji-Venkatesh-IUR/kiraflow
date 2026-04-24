@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KiraFlow - Kirana Store AI Assessment</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f9fafb;color:#1a1a1a}
+header{background:#1D9E75;color:white;padding:16px 24px;display:flex;align-items:center;gap:12px}
+header h1{font-size:20px;font-weight:700}
+header p{font-size:13px;opacity:0.85}
+.container{max-width:680px;margin:28px auto;padding:0 16px}
+.card{background:white;border-radius:12px;border:1px solid #e5e7eb;padding:22px;margin-bottom:18px}
+.card h2{font-size:15px;font-weight:600;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.slot{aspect-ratio:1;border:1.5px dashed #1D9E75;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#E1F5EE;color:#0F6E56;font-size:12px;font-weight:500;gap:5px;overflow:hidden}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot.filled{border:none}
+input[type=file]{display:none}
+.gps-bar{background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;font-size:13px;margin-bottom:14px}
+.dot{width:9px;height:9px;border-radius:50%;background:#1D9E75;flex-shrink:0}
+.btn{width:100%;background:#1D9E75;color:white;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+.btn:disabled{background:#d1d5db;cursor:not-allowed}
+.hidden{display:none}
+.rec{padding:13px 16px;border-radius:10px;font-weight:600;font-size:15px;margin-bottom:14px}
+.approve{background:#EAF3DE;color:#27500A}
+.verify{background:#E1F5EE;color:#085041}
+.reject{background:#FCEBEB;color:#791F1F}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metric{background:#f9fafb;border-radius:10px;padding:13px}
+.mlabel{font-size:12px;color:#6b7280;margin-bottom:3px}
+.mval{font-size:15px;font-weight:700}
+.bar{height:6px;background:#e5e7eb;border-radius:3px;margin-top:7px}
+.fill{height:100%;background:#1D9E75;border-radius:3px;transition:width 0.8s}
+.flag{display:inline-block;background:#FAEEDA;color:#633806;font-size:12px;padding:4px 10px;border-radius:20px;margin:3px 3px 0 0}
+pre{background:#1a1a2e;color:#9FE1CB;padding:14px;border-radius:10px;font-size:12px;line-height:1.6;overflow-x:auto;margin-top:10px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.badge{display:inline-block;background:#E1F5EE;color:#085041;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500;margin-left:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="width:38px;height:38px;background:rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px">🏪</div>
+  <div>
+    <h1>KiraFlow <span style="font-size:13px;opacity:0.8;font-weight:400">by Ganji Venkatesh</span></h1>
+    <p>AI-powered kirana store cash flow assessment</p>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Upload store photos <span class="badge" id="countBadge">0 / 5</span></h2>
+    <div class="grid" id="grid">
+      <div class="slot" onclick="pick(0)"><div style="font-size:22px">+</div><div>Shelf 1</div></div>
+      <div class="slot" onclick="pick(1)"><div style="font-size:22px">+</div><div>Shelf 2</div></div>
+      <div class="slot" onclick="pick(2)"><div style="font-size:22px">+</div><div>Counter</div></div>
+      <div class="slot" onclick="pick(3)"><div style="font-size:22px">+</div><div>Exterior 1</div></div>
+      <div class="slot" onclick="pick(4)"><div style="font-size:22px">+</div><div>Exterior 2</div></div>
+    </div>
+    <input type="file" id="fi" accept="image/*" onchange="onFile(event)">
+
+    <div class="gps-bar">
+      <div class="dot"></div>
+      <span id="gpsText">Detecting GPS location...</span>
+    </div>
+
+    <button class="btn" id="btn" onclick="analyze()" disabled>Add at least 3 photos</button>
+  </div>
+
+  <div class="card hidden" id="result">
+    <h2>Analysis result</h2>
+    <div class="rec" id="rec"></div>
+    <div class="metrics">
+      <div class="metric"><div class="mlabel">Daily sales</div><div class="mval" id="daily">-</div></div>
+      <div class="metric"><div class="mlabel">Monthly revenue</div><div class="mval" id="monthly">-</div></div>
+      <div class="metric"><div class="mlabel">Monthly income</div><div class="mval" id="income">-</div></div>
+      <div class="metric">
+        <div class="mlabel">Confidence score</div>
+        <div class="mval" id="conf">-</div>
+        <div class="bar"><div class="fill" id="fill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="flags"></div>
+    <pre id="raw"></pre>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://legendary-winner-97p45gvrprr7cgj7-8000.app.github.dev';
+const files = new Array(5).fill(null);
+let slot = 0, lat = 22.7196, lng = 75.8577;
+
+navigator.geolocation?.getCurrentPosition(
+  p => { lat = p.coords.latitude; lng = p.coords.longitude;
+    document.getElementById('gpsText').textContent = `GPS locked: ${lat.toFixed(5)}, ${lng.toFixed(5)}`; },
+  () => { document.getElementById('gpsText').textContent = 'GPS: Using Indore default (22.7196, 75.8577)'; }
+);
+
+function pick(i) { slot = i; document.getElementById('fi').click(); }
+
+function onFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  files[slot] = f;
+  const s = document.getElementById('grid').children[slot];
+  s.innerHTML = `<img src="${URL.createObjectURL(f)}">`;
+  s.classList.add('filled');
+  const n = files.filter(Boolean).length;
+  document.getElementById('countBadge').textContent = `${n} / 5`;
+  const btn = document.getElementById('btn');
+  btn.disabled = n < 3;
+  btn.textContent = n < 3 ? `Add ${3-n} more photo(s)` : 'Analyse store';
+  e.target.value = '';
+}
+
+async function analyze() {
+  const btn = document.getElementById('btn');
+  btn.innerHTML = '<span class="spin"></span>Analysing...';
+  btn.disabled = true;
+  const form = new FormData();
+  files.filter(Boolean).forEach(f => form.append('images', f));
+  form.append('latitude', lat);
+  form.append('longitude', lng);
+  try {
+    const res = await fetch(`${API}/analyze`, { method:'POST', body:form });
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
+    showResult(await res.json());
+  } catch(e) {
+    alert('Error: ' + e.message + '\n\nMake sure the API server is running and port 8000 is Public.');
+  } finally {
+    btn.innerHTML = 'Analyse store';
+    btn.disabled = false;
+  }
+}
+
+function fmt(n) {
+  if (n>=100000) return '₹'+(n/100000).toFixed(1)+'L';
+  if (n>=1000) return '₹'+(n/1000).toFixed(0)+'K';
+  return '₹'+n;
+}
+
+function showResult(d) {
+  const map = {
+    approve:['✅ Approved','approve'],
+    approve_with_verification:['✅ Approve with verification','verify'],
+    needs_verification:['⚠️ Needs verification','verify'],
+    reject:['❌ Reject','reject']
+  };
+  const [label,cls] = map[d.recommendation]||['⚠️ Needs verification','verify'];
+  document.getElementById('rec').textContent = label;
+  document.getElementById('rec').className = 'rec '+cls;
+  document.getElementById('daily').textContent = `${fmt(d.daily_sales_range[0])} – ${fmt(d.daily_sales_range[1])}`;
+  document.getElementById('monthly').textContent = `${fmt(d.monthly_revenue_range[0])} – ${fmt(d.monthly_revenue_range[1])}`;
+  document.getElementById('income').textContent = `${fmt(d.monthly_income_range[0])} – ${fmt(d.monthly_income_range[1])}`;
+  const pct = Math.round(d.confidence_score*100);
+  document.getElementById('conf').textContent = pct+'%';
+  document.getElementById('fill').style.width = pct+'%';
+  document.getElementById('flags').innerHTML = d.risk_flags.map(f=>`<span class="flag">${f.replace(/_/g,' ')}</span>`).join('');
+  document.getElementById('raw').textContent = JSON.stringify(d,null,2);
+  const r = document.getElementById('result');
+  r.classList.remove('hidden');
+  r.scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>

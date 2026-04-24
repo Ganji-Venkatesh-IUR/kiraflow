@@ -67,3 +67,15 @@ def _build_recommendation(confidence: float, risk_flags: list) -> str:
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/demo")
+def demo():
+    return FileResponse(os.path.join(static_dir, "index.html"))
